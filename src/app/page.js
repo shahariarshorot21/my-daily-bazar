@@ -9,22 +9,68 @@ import Image from "next/image";
 
 const toBanglaDigit = (num) => {
   if (num === null || num === undefined || num === "") return "";
+
   const banglaDigits = {
-    0: "0",
-    1: "1",
-    2: "2",
-    3: "3",
-    4: "4",
-    5: "5",
-    6: "6",
-    7: "7",
-    8: "8",
-    9: "9",
+    0: "০",
+    1: "১",
+    2: "২",
+    3: "৩",
+    4: "৪",
+    5: "৫",
+    6: "৬",
+    7: "৭",
+    8: "৮",
+    9: "৯",
   };
 
   return String(num).replace(/[0-9]/g, (digit) => banglaDigits[digit]);
 };
 
+const renderChange = (change) => {
+  if (!change) return null;
+
+  let isUp = false;
+  let isDown = false;
+  let value = "";
+
+  if (typeof change === "string" || typeof change === "number") {
+    const strVal = String(change);
+
+    isUp = strVal.includes("▲");
+    isDown = strVal.includes("▼") || strVal.includes("-");
+
+    value = toBanglaDigit(
+      Math.abs(Number(strVal.replace(/[^0-9.-]/g, "")) || 0)
+    );
+  } else if (typeof change === "object") {
+    isUp = change.dir === "up" || change.dir === "▲";
+    isDown = change.dir === "down" || change.dir === "▼";
+
+    value = toBanglaDigit(Math.abs(change.pct || 0));
+  }
+
+  if (
+    change?.dir === "flat" ||
+    (!isUp && !isDown && Number(value.replace(/[০-৯]/g, (d) => "০১২৩৪৫৬৭৮৯".indexOf(d))) === 0)
+  ) {
+    return (
+      <div className="rounded-md bg-gray-100 px-2 py-0.5 text-[11px] font-bold text-gray-500">
+        — ০%
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={`flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-bold ${
+        isUp ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-600"
+      }`}
+    >
+      <span>{isUp ? "▲" : "▼"}</span>
+      <span>{value}%</span>
+    </div>
+  );
+};
 
 const ProductSection = ({ title, icon, items, handleProtectedClick }) => (
   <section className="mb-8">
@@ -61,7 +107,9 @@ const ProductSection = ({ title, icon, items, handleProtectedClick }) => (
                   {prod.unit || "প্রতি কেজি"}
                 </span>
 
-                <p className="mt-1 text-[11px] text-gray-400">আজকের দাম</p>
+                <p className="mt-1 text-[11px] text-gray-400">
+                  আজকের দাম
+                </p>
 
                 <p className="mt-0.5 text-base font-extrabold text-gray-900">
                   {toBanglaDigit(prod.today ?? prod.price ?? "—")}{" "}
@@ -80,56 +128,26 @@ const ProductSection = ({ title, icon, items, handleProtectedClick }) => (
   </section>
 );
 
-const renderChange = (change) => {
-  if (!change) return null;
-
-  let isUp = false;
-  let isDown = false;
-  let value = "";
-
-  if (typeof change === "string" || typeof change === "number") {
-    const strVal = String(change);
-
-    isUp = strVal.includes("▲");
-    isDown = strVal.includes("▼") || strVal.includes("-");
-
-    value = toBanglaDigit(
-      Math.abs(Number(strVal.replace(/[^0-9.-]/g, "")) || 0),
-    );
-  } else if (typeof change === "object") {
-    isUp = change.dir === "up" || change.dir === "▲";
-    isDown = change.dir === "down" || change.dir === "▼";
-
-    value = toBanglaDigit(Math.abs(change.pct || 0));
-  }
-
-  if (change.dir === "flat" || (!isUp && !isDown && Number(value) === 0)) {
-    return (
-      <div className="rounded-md bg-gray-100 px-2 py-0.5 text-[11px] font-bold text-gray-500">
-        — 0%
-      </div>
-    );
-  }
-
-  return (
-    <div
-      className={`flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-bold ${
-        isUp ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-600"
-      }`}
-    >
-      <span>{isUp ? "▲" : "▼"}</span>
-      <span>{value}%</span>
-    </div>
-  );
-};
-
 export default function Home() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [date, setDate] = useState("");
 
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
+
+
+  useEffect(() => {
+    setDate(
+      new Date().toLocaleDateString("bn-BD", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    );
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -141,12 +159,18 @@ export default function Home() {
 
         if (prodRes.ok) {
           const prodData = await prodRes.json();
-          if (Array.isArray(prodData)) setProducts(prodData);
+
+          if (Array.isArray(prodData)) {
+            setProducts(prodData);
+          }
         }
 
         if (catRes.ok) {
           const catData = await catRes.json();
-          if (Array.isArray(catData)) setCategories(catData);
+
+          if (Array.isArray(catData)) {
+            setCategories(catData);
+          }
         }
       } catch (error) {
         console.error("Data fetch failed:", error);
@@ -173,11 +197,11 @@ export default function Home() {
       : "চাল, ডাল, তেল, সবজি, মাছ, মাংস, ডিম ও মসলা";
 
   const increasedProducts = products.filter(
-    (prod) => prod.change?.dir === "up" || prod.change?.dir === "▲",
+    (prod) => prod.change?.dir === "up" || prod.change?.dir === "▲"
   );
 
   const decreasedProducts = products.filter(
-    (prod) => prod.change?.dir === "down" || prod.change?.dir === "▼",
+    (prod) => prod.change?.dir === "down" || prod.change?.dir === "▼"
   );
 
   return (
@@ -187,12 +211,7 @@ export default function Home() {
         <div className="relative mb-8 flex flex-col items-center justify-between gap-6 overflow-hidden rounded-3xl border border-gray-100 bg-white p-6 shadow-sm sm:p-10 md:flex-row">
           <div className="max-w-xl">
             <span className="mb-3 inline-block rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-              {new Date().toLocaleDateString("bn-BD", {
-                weekday: "long",
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })}
+              {date}
             </span>
 
             <h1 className="mb-3 text-3xl font-bold leading-tight text-gray-900">
@@ -204,7 +223,10 @@ export default function Home() {
               সর্বনিম্ন-সর্বাধিক এবং দামের পরিবর্তন এক জায়গায়।
             </p>
 
-            <button className="inline-flex items-center justify-center rounded-xl bg-emerald-700 px-6 py-3 text-sm font-semibold text-white shadow transition hover:bg-emerald-800">
+            <button
+              onClick={() => router.push("/product")}
+              className="inline-flex items-center justify-center rounded-xl bg-emerald-700 px-6 py-3 text-sm font-semibold text-white shadow transition hover:bg-emerald-800"
+            >
               সব পণ্য দেখুন
             </button>
           </div>
@@ -212,9 +234,10 @@ export default function Home() {
           <div className="flex h-40 w-40 items-center justify-center rounded-3xl bg-emerald-50 text-6xl shadow-inner sm:h-52 sm:w-52">
             <Image
               src="/image/bazar-hero.png"
-              alt="Product Image"
+              alt="বাজারের পণ্য"
               width={200}
               height={200}
+              priority
             />
           </div>
         </div>
