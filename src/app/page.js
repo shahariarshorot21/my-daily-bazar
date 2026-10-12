@@ -10,22 +10,22 @@ import Image from "next/image";
 const toBanglaDigit = (num) => {
   if (num === null || num === undefined || num === "") return "";
   const banglaDigits = {
-    0: "০",
-    1: "১",
-    2: "২",
-    3: "৩",
-    4: "৪",
-    5: "৫",
-    6: "৬",
-    7: "৭",
-    8: "৮",
-    9: "৯",
+    0: "0",
+    1: "1",
+    2: "2",
+    3: "3",
+    4: "4",
+    5: "5",
+    6: "6",
+    7: "7",
+    8: "8",
+    9: "9",
   };
 
   return String(num).replace(/[0-9]/g, (digit) => banglaDigits[digit]);
 };
 
-// ─── ProductSection কম্পোনেন্টটি এখন Home() ফাংশনের বাইরে রাখা হয়েছে ───
+
 const ProductSection = ({ title, icon, items, handleProtectedClick }) => (
   <section className="mb-8">
     <h2 className="mb-4 flex items-center gap-2 text-xl font-bold text-gray-900">
@@ -80,7 +80,6 @@ const ProductSection = ({ title, icon, items, handleProtectedClick }) => (
   </section>
 );
 
-// Helper function বাইরে রাখা হলো
 const renderChange = (change) => {
   if (!change) return null;
 
@@ -107,7 +106,7 @@ const renderChange = (change) => {
   if (change.dir === "flat" || (!isUp && !isDown && Number(value) === 0)) {
     return (
       <div className="rounded-md bg-gray-100 px-2 py-0.5 text-[11px] font-bold text-gray-500">
-        — ০%
+        — 0%
       </div>
     );
   }
@@ -188,7 +187,12 @@ export default function Home() {
         <div className="relative mb-8 flex flex-col items-center justify-between gap-6 overflow-hidden rounded-3xl border border-gray-100 bg-white p-6 shadow-sm sm:p-10 md:flex-row">
           <div className="max-w-xl">
             <span className="mb-3 inline-block rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-              মঙ্গলবার, ৬ অক্টোবর, ২০২৬
+              {new Date().toLocaleDateString("bn-BD", {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}
             </span>
 
             <h1 className="mb-3 text-3xl font-bold leading-tight text-gray-900">

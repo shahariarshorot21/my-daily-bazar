@@ -10,7 +10,6 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
-  // অ্যাকাউন্ট লিংকিং ইনেবল করা হলো
   account: {
     accountLinking: {
       enabled: true,

@@ -1,3 +1,5 @@
+export const instant = false;
+
 import baseUrl from "@/services/baseUrl";
 import Link from "next/link";
 import { notFound } from "next/navigation";

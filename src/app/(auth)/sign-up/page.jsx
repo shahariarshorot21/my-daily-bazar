@@ -157,7 +157,6 @@ export default function SignUp() {
           <div>
            <button
             type="button"
-            // onClick={handleGoogleLogin}
             disabled={loading}
             className="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
           >
